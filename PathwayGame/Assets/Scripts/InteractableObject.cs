@@ -2,9 +2,13 @@ using UnityEngine;
 
 public class InteractableObject : MonoBehaviour
 {
+    public Item itemData; // Arrastra aquí el ScriptableObject que creaste
     public virtual void Interact()
     {
-        Debug.Log("Interacted with " + gameObject.name);
-        // Add your interaction logic here
+        // Buscamos el manager y le pasamos este objeto
+        Object.FindAnyObjectByType<InventoryManager>().AgregarObjeto(itemData);
+        
+        // Destruimos el objeto del mundo o lo desactivamos
+        gameObject.SetActive(false);
     }
 }
