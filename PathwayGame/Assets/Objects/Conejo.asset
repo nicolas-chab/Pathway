@@ -10,12 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4d6211625032a6246b4d9360acedb7cb, type: 3}
-  m_Name: CuchilloOxidado
+  m_Name: Conejo
   m_EditorClassIdentifier: Assembly-CSharp::Item
-  nombre: Cuchillo Oxidado
-  descripcion: 'Un cuchillo que parece ser viejo, se puede ver un ligero rastro de
-    sangre seca en su filo
-
-'
-  modelo3DPrefab: {fileID: 5322014618477538371, guid: ab57a220c6b37964a952bdf70bfc7e94, type: 3}
-  idUnico: 1
+  nombre: Peluche de Conejo
+  descripcion: Un conejo de peluche, parece como si tuviera algo dentro
+  modelo3DPrefab: {fileID: 5322014618477538371, guid: 537eb8623e3491143baafdbbdf7168f0, type: 3}
+  idUnico: 2

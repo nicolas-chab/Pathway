@@ -6,7 +6,7 @@ public class InteractableObject : MonoBehaviour
     public virtual void Interact()
     {
         // Buscamos el manager y le pasamos este objeto
-        Object.FindAnyObjectByType<InventoryManager>().AgregarObjeto(itemData);
+        Object.FindAnyObjectByType<SilentHillInventory>().AgregarItemAlInventario(itemData);
         
         // Destruimos el objeto del mundo o lo desactivamos
         gameObject.SetActive(false);
