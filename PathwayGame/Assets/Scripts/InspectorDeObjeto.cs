@@ -17,7 +17,7 @@ public class Inspector : MonoBehaviour
     void Update()
     {
         // Solo funciona si el inventario está abierto
-        if (inventario != null && inventario.EstaAbierto())
+        if (inventario != null && inventario.PuedeRotar())
         {
             // --- DETECTAR EL CLIC INICIAL (GetMouseButtonDown) ---
             if (Input.GetMouseButtonDown(0))

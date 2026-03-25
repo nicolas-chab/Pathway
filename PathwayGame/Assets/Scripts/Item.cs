@@ -6,5 +6,6 @@ public class Item : ScriptableObject
     public string nombre;
     [TextArea] public string descripcion; // Para que el texto sea largo
     public GameObject modelo3DPrefab; // Arrastrá aquí el FBX del cuchillo
+    public Sprite icono; // Arrastrá aquí la imagen del cuchillo para el inventario
     public string idUnico; // Ejemplo: "llave_plata", "cuchillo_caza"
 }

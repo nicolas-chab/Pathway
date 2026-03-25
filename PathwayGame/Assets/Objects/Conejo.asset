@@ -15,4 +15,5 @@ MonoBehaviour:
   nombre: Peluche de Conejo
   descripcion: Un conejo de peluche, parece como si tuviera algo dentro
   modelo3DPrefab: {fileID: 5322014618477538371, guid: 537eb8623e3491143baafdbbdf7168f0, type: 3}
-  idUnico: 2
+  icono: {fileID: 21300000, guid: b74c31d447d2f5d41a61081bdf5e7126, type: 3}
+  idUnico: Conejo
