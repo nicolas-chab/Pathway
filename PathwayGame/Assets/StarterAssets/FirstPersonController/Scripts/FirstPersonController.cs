@@ -12,6 +12,12 @@ namespace StarterAssets
 	public class FirstPersonController : MonoBehaviour
 	{
 		[Header("Player")]
+		[Header("Head Bob Settings")]
+		public float BobFrequency = 5.0f;    // Qué tan rápido "pasos" da
+		public float BobAmount = 0.05f;      // Qué tan fuerte es el movimiento (arriba/abajo)
+		public float BobHorizontalAmount = 0.03f; // Balanceo lateral
+		private float _bobTimer;
+		private Vector3 _defaultCameraTargetPosition;
 		[Tooltip("Move speed of the character in m/s")]
 		public float MoveSpeed = 4.0f;
 		[Tooltip("Sprint speed of the character in m/s")]
@@ -108,6 +114,14 @@ namespace StarterAssets
 			// reset our timeouts on start
 			_jumpTimeoutDelta = JumpTimeout;
 			_fallTimeoutDelta = FallTimeout;
+			_controller = GetComponent<CharacterController>();
+			_input = GetComponent<StarterAssetsInputs>();
+			
+			// GUARDAR POSICIÓN INICIAL (NUEVO)
+			if (CinemachineCameraTarget != null)
+			{
+				_defaultCameraTargetPosition = CinemachineCameraTarget.transform.localPosition;
+			}
 		}
 
 		private void Update()
@@ -115,6 +129,7 @@ namespace StarterAssets
 			JumpAndGravity();
 			GroundedCheck();
 			Move();
+			HandleHeadBob();
 		}
 
 		private void LateUpdate()
@@ -263,6 +278,33 @@ namespace StarterAssets
 
 			// when selected, draw a gizmo in the position of, and matching radius of, the grounded collider
 			Gizmos.DrawSphere(new Vector3(transform.position.x, transform.position.y - GroundedOffset, transform.position.z), GroundedRadius);
+		}
+		private void HandleHeadBob()
+		{
+			if (!Grounded) return;
+
+			// Si nos estamos moviendo
+			if (Mathf.Abs(_speed) > 0.1f)
+			{
+				// El timer avanza según la velocidad actual
+				_bobTimer += Time.deltaTime * (BobFrequency + (_speed * 1.5f));
+
+				// Calculamos la nueva posición usando Seno y Coseno
+				float newY = _defaultCameraTargetPosition.y + Mathf.Sin(_bobTimer) * BobAmount;
+				float newX = _defaultCameraTargetPosition.x + Mathf.Cos(_bobTimer / 2) * BobHorizontalAmount;
+
+				CinemachineCameraTarget.transform.localPosition = new Vector3(newX, newY, _defaultCameraTargetPosition.z);
+			}
+			else
+			{
+				// Si estamos quietos, volvemos suavemente al centro
+				_bobTimer = 0;
+				CinemachineCameraTarget.transform.localPosition = Vector3.Lerp(
+					CinemachineCameraTarget.transform.localPosition, 
+					_defaultCameraTargetPosition, 
+					Time.deltaTime * 5f
+				);
+			}
 		}
 	}
 }

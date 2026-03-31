@@ -3,45 +3,51 @@ using UnityEngine;
 public class CameraInteraction : MonoBehaviour
 {
     private new Transform camera;
-    public float raydistance = 10f;
+    public float raydistance = 3f; // Reducido a 3 para realismo (Silent Hill)
     public SilentHillInventory inventario;
-     void Awake()
+
+    void Awake()
     {
+        // Buscamos la cámara principal
         camera = Camera.main.transform;
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+
     void Start()
     {
-        // Buscamos el objeto que tiene el script del inventario
-        inventario = FindAnyObjectByType<SilentHillInventory>();
+        // Buscamos el inventario en la escena
+        inventario = FindFirstObjectByType<SilentHillInventory>();
     }
 
-    // Update is called once per frame
     void Update()
     {
+        // 1. SI EL INVENTARIO ESTÁ ABIERTO, NO HACEMOS NADA MÁS
+        // Esto evita que clickees iconos y puertas al mismo tiempo
+        if (inventario != null && inventario.estaAbierto) return;
+
+        // Dibujamos el rayo en el editor para debug
         Debug.DrawRay(camera.position, camera.forward * raydistance, Color.red);
-        if (Input.GetMouseButtonDown(0)) // Check for left mouse button click
+
+        // 2. DETECCIÓN DE INTERACCIÓN (Solo si el inventario está cerrado)
+        if (Input.GetMouseButtonDown(0)) 
         {
-            
-        
             RaycastHit hit;
             if (Physics.Raycast(camera.position, camera.forward, out hit, raydistance))
             {
-                
+                // Si es un objeto de interacción simple (llaves, notas, etc.)
                 if (hit.collider.CompareTag("Interactable"))
                 {
-                    hit.transform.GetComponent<InteractableObject>().Interact(); // Call the Interact method on the hit object
+                    var interactable = hit.transform.GetComponent<InteractableObject>();
+                    if(interactable != null) interactable.Interact();
                 }
-                InteraccionID objetoConID = hit.collider.GetComponent<InteraccionID>();
 
+                // Si es una PUERTA o CAJA que requiere el inventario
+                InteraccionID objetoConID = hit.collider.GetComponent<InteraccionID>();
                 if (objetoConID != null)
                 {
-                    // En lugar de intentar la acción acá, abrimos el inventario 
-                    // y le avisamos que esta es la puerta que queremos abrir.
+                    // Le avisamos al inventario que esta es la puerta que queremos abrir
                     inventario.AbrirParaInteraccion(objetoConID);
                 }
             }
-            
         }
     }
 }
