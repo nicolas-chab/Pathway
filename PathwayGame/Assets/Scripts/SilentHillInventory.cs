@@ -8,8 +8,15 @@ public class SilentHillInventory : MonoBehaviour
     [Header("Colección de Items")]
     public List<Item> items = new List<Item>(); 
     public int indiceActual = 0; 
-    public bool estaAbierto = false; // Pública para que CameraInteraction la vea
+    public bool estaAbierto = false;
     public bool enModoInspeccion = false;
+
+    [Header("Efecto Carrusel")]
+    [Tooltip("Distancia entre el centro de un icono y el siguiente")]
+    public float anchoDelSlot = 200f; 
+    [Tooltip("Suavizado del movimiento")]
+    public float suavizadoCarrusel = 10f;
+    private RectTransform rectContenedor;
 
     [Header("UI: Paneles")]
     public GameObject panelPrincipal; 
@@ -35,6 +42,9 @@ public class SilentHillInventory : MonoBehaviour
 
     void Start()
     {
+        // Obtenemos el RectTransform del contenedor para poder moverlo
+        rectContenedor = contenedorFilaIconos.GetComponent<RectTransform>();
+
         if (panelPrincipal != null) panelPrincipal.SetActive(false);
         if (panelVisualizador3D != null) panelVisualizador3D.SetActive(false);
         if (subMenuMouse != null) subMenuMouse.SetActive(false);
@@ -44,16 +54,27 @@ public class SilentHillInventory : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.I)) ToggleInventario();
 
-        if (estaAbierto && items.Count > 0)
+        if (estaAbierto)
         {
-            if (enModoInspeccion)
+            // --- LÓGICA DE MOVIMIENTO CARRUSEL ---
+            // Calculamos la posición X objetivo: 
+            // El índice 0 está en X=0, el índice 1 en X=-anchoDelSlot, etc.
+            float targetX = -(indiceActual * anchoDelSlot);
+            Vector2 targetPos = new Vector2(targetX, rectContenedor.anchoredPosition.y);
+            
+            // Movemos el contenedor suavemente hacia esa posición
+            rectContenedor.anchoredPosition = Vector2.Lerp(rectContenedor.anchoredPosition, targetPos, Time.deltaTime * suavizadoCarrusel);
+
+            if (items.Count > 0)
             {
-                if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.Escape)) SalirDeInspeccion();
+                if (enModoInspeccion)
+                {
+                    if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.Escape)) SalirDeInspeccion();
+                }
             }
         }
     }
 
-    // --- LA FUNCIÓN QUE FALTABA ---
     public void AbrirParaInteraccion(InteraccionID receptor)
     {
         if (items.Count == 0) 
@@ -64,8 +85,6 @@ public class SilentHillInventory : MonoBehaviour
 
         objetoPendiente = receptor;
         if (!estaAbierto) ToggleInventario();
-        
-        // Al abrir por puerta, seleccionamos el item y mostramos opciones
         SeleccionarItemPorClick(indiceActual);
     }
 
@@ -79,10 +98,8 @@ public class SilentHillInventory : MonoBehaviour
             if (panelVisualizador3D != null) panelVisualizador3D.SetActive(false);
             if (contenedorFilaIconos != null) contenedorFilaIconos.gameObject.SetActive(true);
 
-            // Si abrimos con la "I", olvidamos cualquier puerta anterior
             if (Input.GetKeyDown(KeyCode.I)) objetoPendiente = null;
 
-            // Forzamos selección inicial para que los botones aparezcan siempre
             if (items.Count > 0) SeleccionarItemPorClick(indiceActual);
         }
         else
@@ -91,8 +108,6 @@ public class SilentHillInventory : MonoBehaviour
         }
 
         panelPrincipal.SetActive(estaAbierto);
-        
-        // Liberar cursor
         Cursor.lockState = estaAbierto ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = estaAbierto;
         
@@ -109,13 +124,8 @@ public class SilentHillInventory : MonoBehaviour
         indiceActual = indice;
         ActualizarVista(); 
 
-        // ACTIVAR SUBMENÚ
         if (subMenuMouse != null) subMenuMouse.SetActive(true);
-        
-        // Inspeccionar: SIEMPRE PRENDIDO
         if (botonInspeccionar != null) botonInspeccionar.SetActive(true);
-
-        // Usar: SOLO si hay puerta
         if (botonUsar != null) botonUsar.SetActive(objetoPendiente != null);
     }
 
@@ -152,7 +162,6 @@ public class SilentHillInventory : MonoBehaviour
 
     public void ActualizarVista()
     {
-        // Limpiamos los iconos viejos
         foreach (Transform t in contenedorFilaIconos) Destroy(t.gameObject);
 
         if (items.Count == 0) 
@@ -173,27 +182,21 @@ public class SilentHillInventory : MonoBehaviour
         {
             GameObject slot = Instantiate(prefabSlotIcono, contenedorFilaIconos);
             
-            // --- AQUÍ ESTÁ EL ARREGLO ---
             Image img = slot.GetComponent<Image>();
             if (img != null) 
             {
-                // Asignamos el icono que tenés en el Scriptable Object
                 img.sprite = items[i].icono; 
-                
-                // Resaltamos el seleccionado
                 img.color = (i == indiceActual) ? Color.white : new Color(1, 1, 1, 0.4f);
                 img.raycastTarget = true;
             }
 
-            // Si tu prefab tiene texto (como el que vimos antes)
             TextMeshProUGUI txt = slot.GetComponentInChildren<TextMeshProUGUI>();
             if (txt != null) 
             {
-                txt.text = items[i].nombre; // Ponemos el nombre del objeto
+                txt.text = items[i].nombre; 
                 txt.color = (i == indiceActual) ? Color.white : new Color(1, 1, 1, 0.4f);
             }
 
-            // Aseguramos que tenga botón para el mouse
             Button btn = slot.GetComponent<Button>();
             if (btn == null) btn = slot.AddComponent<Button>();
 
@@ -202,7 +205,6 @@ public class SilentHillInventory : MonoBehaviour
             btn.onClick.AddListener(() => SeleccionarItemPorClick(indexLocal));
         }
 
-        // Actualizar el modelo 3D del estudio
         foreach (Transform t in puntoDeSpawn_Item) Destroy(t.gameObject);
         if (item.modelo3DPrefab != null)
         {
@@ -216,5 +218,3 @@ public class SilentHillInventory : MonoBehaviour
 
     public bool EstaAbierto() => estaAbierto;
 }
-    
-
